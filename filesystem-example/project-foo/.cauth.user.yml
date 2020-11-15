@@ -1,0 +1,5 @@
+variables:
+  VAR_1:
+    domain:
+      name: user-domain-for-project-v1
+      profile: user-profile-for-project-v1

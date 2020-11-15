@@ -1,0 +1,4 @@
+variables:
+  VAR_2:
+    domain:
+      profile: user-profile-for-global-v2

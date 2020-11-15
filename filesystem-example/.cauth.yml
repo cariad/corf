@@ -1,0 +1,9 @@
+variables:
+  VAR_1:
+    domain:
+      region: team-region-for-global-v1
+
+  VAR_2:
+    domain:
+      account: team-account-for-global-v2
+      region: team-region-for-global-v2

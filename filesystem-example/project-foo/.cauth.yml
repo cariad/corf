@@ -1,0 +1,8 @@
+variables:
+  VAR_1:
+    domain:
+      account: team-account-for-project-v1
+      name: team-domain-for-project-v1
+  VAR_2:
+    domain:
+      name: team-domain-for-project-v2
