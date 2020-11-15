@@ -12,29 +12,38 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
+
       - name: Install
         run: |
           python -m pip install --upgrade pip
           python -m pip install pipenv
           pipenv sync --dev
+
       - name: Test
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
         run: pipenv run ./test.sh
+
       - name: Development build
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
         run: |
-          rm -rf dist
           echo "0.0.0" > cauth/VERSION
+          rm -rf dist
           pipenv run python setup.py bdist_wheel
+
       - name: Development smoke
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
         run: |
-          pipenv install dist/cauth-0.0.0-py3-none-any.whl
+          pipenv install "dist/$(ls dist)"
           pipenv run cauth --version | tee version.tmp
           grep -qF "0.0.0" version.tmp
+
       - name: Versioned build
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         run: |
-          rm -rf dist
           echo "${GITHUB_REF##*/}" > cauth/VERSION
+          rm -rf dist
           pipenv run python setup.py bdist_wheel
+
       - name: Versioned smoke
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         run: |
@@ -42,6 +51,7 @@ jobs:
           pipenv install "dist/$(ls dist)"
           pipenv run cauth --version | tee version.tmp
           grep -qF "${GITHUB_REF##*/}" version.tmp
+
       - name: Publish
         uses: pypa/gh-action-pypi-publish@master
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')

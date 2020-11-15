@@ -3,10 +3,10 @@ from setuptools import find_packages, setup
 from cauth.version import get_version
 
 setup(
-    name="cauth",
+    name="corf",
     version=get_version(),
     description="""
-`cauth` is an AWS CodeArtifact authorization helper for `pipenv` and other command line
+`corf` is an AWS CodeArtifact authorization helper for `pipenv` and other command line
 tools that read CodeArtifact authorization tokens.""",
     author="Cariad Eccleston",
     author_email="cariad@cariad.me",
