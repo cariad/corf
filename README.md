@@ -2,104 +2,145 @@
 
 `corf` is an AWS CodeArtifact orthorisation… uh I mean _authorisation_ helper for `pipenv` and any other command line tools that read CodeArtifact authorisation tokens as environment variables.
 
-## Problem
+## Introduction
 
-Let's say you have a `Pipfile` that describes an AWS CodeArtifact repository as a source:
+Say you have a `Pipfile` that describes an AWS CodeArtifact repository as a source and an environment variable to hold the authorisation token:
 
 ```text
 [[source]]
-name = "freyda-pypackages"
+name = "private-pypackages"
 url = "https://aws:$CODEARTIFACT_AUTH_TOKEN@starkindustries-012345678901.d.codeartifact.us-east-1.amazonaws.com/pypi/project-ultron/simple"
 verify_ssl = true
 ```
 
-How do you set that `CODEARTIFACT_AUTH_TOKEN` environment variable?
-
-Sure, if you develop in Bash then you could run the `aws` command line to refresh your token twice a day:
+Traditionally, you'd set your authorization token twice a day by running:
 
 ```bash
 export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain starkindustries --domain-owner 012345678901 --query authorizationToken --output text --region us-east-1)
 ```
 
-And--sure--there are ways of simplifying and automating it. But what if you're supporting developers across a range of operating systems and shells? What if you're supporting developers across a range of patience to muck around with shell internals to automate their lives? What if you spin up a fresh virtual machine to play around in, and you just want to authenticate in an unconfigured shell and no recollection of the `aws` command to run?
+But what if you're a fan of PowerShell or some other weird/wonderful shell? What if you don't want to maintain a set of helper scripts for your team's diverse development machines?
 
-That's where `cauth` comes in. `cauth` replaces all that setup, mental load and shell-specificity with:
+`corf` replaces this:
 
 ```bash
-cauth pipenv install
+# Magic goes here.
+pipenv install --dev
+```
+
+…with this:
+
+```bash
+corf pipenv install
 ```
 
 ## Installation
+
+`corf` requires >= Python 3.8.
 
 ```bash
 pip install corf
 ```
 
-## Project setup
+## Configuration
 
-### Simple example
+`corf` will walk your directories to find configuration files that describe the environment variables to set and the CodeArtifact domains to request authorisation tokens from.
 
-Create a file named `.cauth.yml` inside your project directory like this:
-
-```yaml
-variables:
-  - account: <CodeArtifact repository account ID>
-    domain:  <CodeArtifact repository domain>
-    name:    <Environment variable>
-    region:  <CodeArtifact repository region>
-```
-
-For example, for any repository in the "starkindustries" domain in "us-east-1" in AWS account "012345678901", you could create this `.cauth.yml` to generate authorisation tokens into the "CODEARTIFACT_AUTH_TOKEN" environment variable:
+For example, to request an authorisation token from the "starkindustries" domain in region "eu-west-1" of AWS account "012345678901" and set it to the "AUTH_TOKEN_FOO" environment variable, you could create this `.corf.yml` in your project directory:
 
 ```yaml
 variables:
-  - account: "012345678901"
-    domain:  starkindustries
-    name:    CODEARTIFACT_AUTH_TOKEN
-    region:  us-east-1
+  AUTH_TOKEN_FOO:
+    domain:
+      account: "012345678901"
+      name: starkindustries
+      region: eu-west-1
 ```
 
-To invoke `pipenv` with a fresh authorisation token:
+To run `pipenv install` with the "AUTH_TOKEN_FOO" environment variable set, run:
 
 ```bash
-cauth pipenv install
+corf pipenv install
 ```
 
-### Profiles and local configuration files
+## Named profiles
 
-If your AWS credentials are in a named profile then you have three options:
+`corf` will use your default AWS credentials without prompting. If you need to use a specific named profile then you have three options:
 
-First, you can pass the profile to `cauth` on the command line:
+1. Run `corf` with the `--profile` option:
 
 ```bash
-cauth --profile corporate pipenv install
+corf --profile corp pipenv install
 ```
 
-Note that `--profile` _must_ be the first argument.
+This sucks, though, because you need to remember to add the option.
 
-Second, _could_ add it into `.cauth.yml`:
+2. Add a `profile` property to `.corf.yml`:
 
 ```yaml
 variables:
-  - account: "012345678901"
-    domain:  starkindustries
-    name:    CODEARTIFACT_AUTH_TOKEN
-    region:  us-east-1
-    profile: corporate
+  AUTH_TOKEN_FOO:
+    domain:
+      account: "012345678901"
+      name: starkindustries
+      region: eu-west-1
+      profile: corp
 ```
 
-This isn't typically recommended, since `.cauth.yml` is shared with your team via source control and they might use different named profiles (or none at all).
+This sucks, though, if you want to commit `.corf.yml` to source control to share with your team. They likely don't all use the same named profile as you.
 
-So, the third option is to copy `.cauth.yml` into `.cauth.user.yml`, put the named profile into that, and do not commit `.cauth.user.yml` to source control.
+3. Create a `.corf.user.yml` file that contains your personal details, and don't commit that file to source control.
 
-# Should .cauth.yml files be committed to source control?
+So, if `.corf.yml` is:
 
-`.cauth.yml`, yes.
+```yaml
+variables:
+  AUTH_TOKEN_FOO:
+    domain:
+      account: "012345678901"
+      name: starkindustries
+      region: eu-west-1
+```
 
-`.cauth.user.yml`, no.
+…and if `.corf.user.yml` is:
 
-## Testing
+```yaml
+variables:
+  AUTH_TOKEN_FOO:
+    domain:
+      profile: corp
+```
+
+…then the two configurations will be merged at runtime.
+
+## Configuration file locations
+
+`corf` will merge all of the configurations that it finds.
+
+In any given directory, `.corf.user.yml` takes precedence over `.corf.yml`.
+
+The current working directory will take precedence, down to the root directory, then finally your home directory.
+
+## Development notes
+
+### Testing
 
 ```bash
 ./lint.sh && ./coverage.sh && ./build.sh
 ```
+
+## Thanks!
+
+My name is [Cariad Eccleston](https://cariad.me) and I'm a freelance DevOps engineer. I appreciate you checking out my projects! I love AWS and Python, I'm available for interesing gigs, and I'd love to hear from you!
+
+## FAQs
+
+### Why `corf`?
+
+I _really_ wanted to call it `cauth`, but that's a reserved name on pypi.org. `corf` is close enough.
+
+### Should `.corf.yml` be committed to source control?
+
+`.corf.yml`, yes.
+
+`.corf.user.yml`, no.

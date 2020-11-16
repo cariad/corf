@@ -1,6 +1,6 @@
 from mock import Mock, patch
 
-from cauth.cli import CLI
+from corf.cli import CLI
 
 
 def test_args() -> None:
@@ -26,7 +26,7 @@ def test_args__version() -> None:
     assert CLI(["--version"]).args.version
 
 
-@patch("cauth.cli.Executor")
+@patch("corf.cli.Executor")
 def test_execute__success(executor_maker: Mock) -> None:
     executor = Mock()
     executor.execute.return_value = 0
@@ -36,7 +36,7 @@ def test_execute__success(executor_maker: Mock) -> None:
     assert executor.execute.called_with()
 
 
-@patch("cauth.cli.Executor")
+@patch("corf.cli.Executor")
 def test_execute__fail(executor_maker: Mock) -> None:
     executor = Mock()
     executor.execute.side_effect = Exception("printer on fire")
@@ -44,27 +44,27 @@ def test_execute__fail(executor_maker: Mock) -> None:
     assert CLI().execute() == 1
 
 
-@patch("cauth.cli.CLI.print_help", return_value=0)
-@patch("cauth.cli.CLI.setup_logging")
+@patch("corf.cli.CLI.print_help", return_value=0)
+@patch("corf.cli.CLI.setup_logging")
 def test_invoke(setup_logging: Mock, print_help: Mock) -> None:
     assert CLI([]).invoke() == 0
     setup_logging.assert_called_with()
     print_help.assert_called_with()
 
 
-@patch("cauth.cli.CLI.execute", return_value=0)
+@patch("corf.cli.CLI.execute", return_value=0)
 def test_invoke__command(execute: Mock) -> None:
     assert CLI(["pipenv", "sync"]).invoke() == 0
     execute.assert_called_with()
 
 
-@patch("cauth.cli.CLI.print_info", return_value=0)
+@patch("corf.cli.CLI.print_info", return_value=0)
 def test_invoke__info(print_info: Mock) -> None:
     assert CLI(["--info"]).invoke() == 0
     print_info.assert_called_with()
 
 
-@patch("cauth.cli.CLI.print_version", return_value=0)
+@patch("corf.cli.CLI.print_version", return_value=0)
 def test_invoke__version(print_version: Mock) -> None:
     assert CLI(["--version"]).invoke() == 0
     print_version.assert_called_with()
@@ -86,7 +86,7 @@ def test_print_version() -> None:
     assert CLI().print_version() == 0
 
 
-@patch("cauth.cli.getLogger")
+@patch("corf.cli.getLogger")
 def test_setup_logging__boto(get_logger: Mock) -> None:
     CLI().setup_logging()
     get_logger.assert_called_with("boto")

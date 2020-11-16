@@ -1,4 +1,4 @@
-from cauth.configuration import Variable
+from corf.configuration import Variable
 
 
 def test_domain() -> None:

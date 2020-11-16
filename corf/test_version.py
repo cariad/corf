@@ -1,4 +1,4 @@
-from cauth.version import get_version
+from corf.version import get_version
 
 
 def test_get_version() -> None:

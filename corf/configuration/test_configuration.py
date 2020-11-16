@@ -2,7 +2,7 @@ from os import chdir
 from pathlib import Path
 from typing import List
 
-from cauth.configuration import Configuration, Variable
+from corf.configuration import Configuration, Variable
 
 testing_dir = Path(__file__).parent.parent.parent.joinpath("testing")
 test_project_dir = testing_dir.joinpath("sample_filesystem").joinpath("project-foo")

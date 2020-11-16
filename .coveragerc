@@ -2,7 +2,7 @@
 command_line = -m pytest
 omit =
     */test_*.py
-source = cauth
+source = corf
 
 [report]
 fail_under = 80

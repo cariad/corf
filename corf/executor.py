@@ -2,8 +2,8 @@ from os import environ
 from subprocess import run
 from typing import Dict, List, Optional
 
-from cauth.authoriser import Authoriser
-from cauth.configuration import Configuration
+from corf.authoriser import Authoriser
+from corf.configuration import Configuration
 
 
 class Executor:

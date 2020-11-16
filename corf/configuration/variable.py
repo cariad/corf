@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from cauth.configuration import Domain
+from corf.configuration import Domain
 
 
 class Variable(dict):

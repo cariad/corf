@@ -4,14 +4,14 @@ from typing import Optional
 from mock import Mock, call, patch
 from pytest import mark
 
-from cauth.configuration import Configuration, Variable
-from cauth.executor import Executor
+from corf.configuration import Configuration, Variable
+from corf.executor import Executor
 
 
 @mark.parametrize("profile", [(None), ("foo")])
-@patch("cauth.executor.Authoriser")
+@patch("corf.executor.Authoriser")
 def test_make_variables(authoriser_maker: Mock, profile: Optional[str]) -> None:
-    environ["CAUTH_UNITTEST"] = "1"
+    environ["CORF_UNITTEST"] = "1"
 
     authoriser_1 = Mock()
     authoriser_1.get_token.return_value = "token-1"
@@ -34,22 +34,22 @@ def test_make_variables(authoriser_maker: Mock, profile: Optional[str]) -> None:
     )
 
     actuals = executor.make_variables()
-    del environ["CAUTH_UNITTEST"]
+    del environ["CORF_UNITTEST"]
 
     # Assert that our tokens are set.
     assert actuals["VAR_1"] == "token-1"
     assert actuals["VAR_2"] == "token-2"
 
     # Assert that all current environment variables are included.
-    assert actuals["CAUTH_UNITTEST"] == "1"
+    assert actuals["CORF_UNITTEST"] == "1"
 
     assert authoriser_maker.call_count == 2
     authoriser_maker.assert_has_calls([call(domain=var_1.domain, profile=profile)])
     authoriser_maker.assert_has_calls([call(domain=var_2.domain, profile=profile)])
 
 
-@patch("cauth.executor.Executor.make_variables")
-@patch("cauth.executor.run")
+@patch("corf.executor.Executor.make_variables")
+@patch("corf.executor.run")
 def test_execute(run: Mock, make_variables: Mock) -> None:
     make_variables.return_value = {"token": "foo"}
     executor = Executor(

@@ -3,8 +3,8 @@ from typing import Optional
 from mock import Mock, patch
 from pytest import mark
 
-from cauth.authoriser import Authoriser
-from cauth.configuration import Domain
+from corf.authoriser import Authoriser
+from corf.configuration import Domain
 
 
 @mark.parametrize(
@@ -26,7 +26,7 @@ def test_client_kwargs(values: dict, expect: dict) -> None:
     assert kwargs == expect
 
 
-@patch("cauth.authoriser.Session")
+@patch("corf.authoriser.Session")
 def test_get_token(session_maker: Mock) -> None:
     session = Mock()
     session_maker.return_value = session

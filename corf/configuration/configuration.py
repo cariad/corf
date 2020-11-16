@@ -4,7 +4,7 @@ from typing import Generator
 
 from yaml import safe_load
 
-from cauth.configuration import Variable
+from corf.configuration import Variable
 
 
 class Configuration(dict):
@@ -33,12 +33,12 @@ class Configuration(dict):
         Loads and merges all available configuration files.
         """
         for directory in self.get_configuration_directories():
-            for filename in [".cauth.yml", ".cauth.user.yml"]:
+            for filename in [".corf.yml", ".corf.user.yml"]:
                 path = directory.joinpath(filename)
                 try:
                     with open(path, "r") as stream:
                         self.merge(source=safe_load(stream), destination=self)
-                        print("cauth merged configuration:", path)
+                        print("corf merged configuration:", path)
                 except FileNotFoundError:
                     pass
         return self

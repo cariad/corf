@@ -1,4 +1,4 @@
-from cauth.cli import CLI
+from corf.cli import CLI
 
 
 def cli_entry() -> None:

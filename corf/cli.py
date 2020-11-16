@@ -2,9 +2,9 @@ from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from logging import getLogger
 from typing import List, Optional
 
-from cauth.configuration import Configuration
-from cauth.executor import Executor
-from cauth.version import get_version
+from corf.configuration import Configuration
+from corf.executor import Executor
+from corf.version import get_version
 
 
 class CLI:
@@ -45,7 +45,7 @@ class CLI:
                 profile=self.args.profile,
             ).execute()
         except Exception as e:
-            print(f"cauth failed: {str(e)}")
+            print(f"corf failed: {str(e)}")
             return 1
 
     def invoke(self) -> int:
@@ -73,7 +73,7 @@ class CLI:
         Gets an `ArgumentParser` populated for CLI usage.
         """
         ap = ArgumentParser(
-            "cauth",
+            "corf",
             description="""
 `corf` is an AWS CodeArtifact orthorisation… uh I mean _authorisation_ helper for
 `pipenv` and any other command line tools that read CodeArtifact authorisation tokens as
@@ -83,15 +83,15 @@ See https://github.com/cariad/corf for full instructions.""",
             epilog="""
 examples:
 # To run "pipenv install --dev" with an AWS CodeArtifact authorisation token set:
-cauth pipenv install --dev
+corf pipenv install --dev
 
 # To use a specific AWS named profile:
-cauth --profile corp pipenv install --dev
+corf --profile corp pipenv install --dev
 
 # To run any command with an AWS CodeArtifact authorisation token set:
-cauth COMMAND""",
+corf COMMAND""",
             formatter_class=RawDescriptionHelpFormatter,
-            usage="cauth [OPTIONS] COMMAND",
+            usage="corf [OPTIONS] COMMAND",
         )
         ap.add_argument("--info", action="store_true", help="prints information")
         ap.add_argument("--profile", help="named AWS profile to use for authentication")

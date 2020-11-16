@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 from boto3.session import Session
 from botocore.config import Config
 
-from cauth.configuration import Domain
+from corf.configuration import Domain
 
 
 class Authoriser:

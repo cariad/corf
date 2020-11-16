@@ -2,7 +2,7 @@ from typing import Optional
 
 from pytest import mark
 
-from cauth.configuration import Domain
+from corf.configuration import Domain
 
 
 @mark.parametrize(
