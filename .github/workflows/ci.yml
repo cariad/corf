@@ -5,15 +5,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
 
-  # Update "requirements.txt" so we can test in multiple Python versions without
-  # needing pipenv everywhere.
   update_requirements:
-    # Only when pushing to a development branch. Release tags and pulls into the
-    # main branch should have an up-to-date "requirements.txt" already.
-    if: github.event_name == 'push' &&
-        startsWith(github.ref, 'refs/heads') &&
-        github.ref != 'refs/heads/main'
-
     name: Update requirements.txt
     runs-on: ubuntu-latest
     steps:
@@ -122,14 +114,14 @@ jobs:
           retention-days: 1
 
   cli_test:
+    name: CLI test (Python ${{ matrix.python-version }})
+    needs: build
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version:
           - "3.8"
           - "3.9"
-    name: CLI test (Python ${{ matrix.python-version }})
-    needs: build
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -185,12 +177,22 @@ jobs:
           pipenv run python -m tupper
 
   publish:
-    # Publish only when tagging.
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    if: startsWith(github.ref, 'refs/tags')
     name: Publish
     needs: cli_test
     runs-on: ubuntu-latest
     steps:
+      - name: Download build distributable
+        uses: actions/download-artifact@v2
+        with:
+          name: distributable
+
+      - name: Create distributable directory
+        run: |
+          mkdir dist
+          cp *.whl dist
+          ls -al dist/
+
       - name: Publish
         uses: pypa/gh-action-pypi-publish@master
         with:
