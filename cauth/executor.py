@@ -2,7 +2,7 @@ from os import environ
 from subprocess import run
 from typing import Dict, List, Optional
 
-from cauth.authorizer import Authorizer
+from cauth.authoriser import Authoriser
 from cauth.configuration import Configuration
 
 
@@ -15,7 +15,7 @@ class Executor:
 
         config (Configuration): Configuration.
 
-        profile (str):          Optional AWS named profile to use during authorization.
+        profile (str):          Optional AWS named profile to use during authorisation.
                                 Will be used preferentially over any AWS named profile
                                 described in any configuration files.
     """
@@ -33,9 +33,9 @@ class Executor:
         """
         variables = environ.copy()
         for var in self.config.get_variables():
-            authorizer = Authorizer(domain=var.domain, profile=self.profile)
-            print(f'Authorizing "{var.name}"...')
-            variables.update({var.name: authorizer.get_token()})
+            authoriser = Authoriser(domain=var.domain, profile=self.profile)
+            print(f'Authorising "{var.name}"...')
+            variables.update({var.name: authoriser.get_token()})
         return variables
 
     def execute(self) -> int:

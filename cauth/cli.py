@@ -33,7 +33,7 @@ class CLI:
     def execute(self) -> int:
         """
         Execute the prescribed shell command with environment variables populated with
-        AWS CodeArtifact domain authorization tokens.
+        AWS CodeArtifact domain authorisation tokens.
 
         Returns:
             int: Shell return code.
@@ -75,19 +75,20 @@ class CLI:
         ap = ArgumentParser(
             "cauth",
             description="""
-"cauth" is an AWS CodeArtifact authorization helper for "pipenv" and other command line
-tools that read CodeArtifact authorization tokens.
+`corf` is an AWS CodeArtifact orthorisation… uh I mean _authorisation_ helper for
+`pipenv` and any other command line tools that read CodeArtifact authorisation tokens as
+environment variables.
 
-See https://github.com/cariad/cauth for full instructions.""",
+See https://github.com/cariad/corf for full instructions.""",
             epilog="""
 examples:
-# To run "pipenv install --dev" with an AWS CodeArtifact authorization token set:
+# To run "pipenv install --dev" with an AWS CodeArtifact authorisation token set:
 cauth pipenv install --dev
 
 # To use a specific AWS named profile:
 cauth --profile corp pipenv install --dev
 
-# To run any command with an AWS CodeArtifact authorization token set:
+# To run any command with an AWS CodeArtifact authorisation token set:
 cauth COMMAND""",
             formatter_class=RawDescriptionHelpFormatter,
             usage="cauth [OPTIONS] COMMAND",

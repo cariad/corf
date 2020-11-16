@@ -1,26 +1,33 @@
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
 from cauth.version import get_version
 
+readme_path = Path(__file__).parent.joinpath("README.md")
+
+with open(readme_path, encoding="utf-8") as f:
+    long_description = f.read()
+
 setup(
-    name="corf",
-    version=get_version(),
-    description="""
-`corf` is an AWS CodeArtifact authorization helper for `pipenv` and other command line
-tools that read CodeArtifact authorization tokens.""",
     author="Cariad Eccleston",
     author_email="cariad@cariad.me",
-    license="MIT License",
-    packages=find_packages(),
+    description="AWS CodeArtifact authorisation token generator for CLI tools",
     entry_points={
         "console_scripts": [
             "cauth=cauth.__main__:cli_entry",
         ]
     },
+    include_package_data=True,
     install_requires=[
         "pyyaml",
         "boto3",
     ],
+    license="MIT License",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    name="corf",
+    packages=find_packages(),
     python_requires=">=3.8",
-    include_package_data=True,
+    version=get_version(),
 )

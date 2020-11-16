@@ -6,9 +6,9 @@ from botocore.config import Config
 from cauth.configuration import Domain
 
 
-class Authorizer:
+class Authoriser:
     """
-    Requests an authorization token from an AWS CodeArtifact domain.
+    Requests an authorisation token from an AWS CodeArtifact domain.
 
     Arguments:
         domain (Domain): AWS CodeArtifact domain.
@@ -37,7 +37,7 @@ class Authorizer:
 
     def get_token(self) -> str:
         """
-        Gets an authorization token from the prescribed AWS CodeArtifact domain.
+        Gets an authorisation token from the prescribed AWS CodeArtifact domain.
         """
         session = Session(**self.session_kwargs)
         codeart = session.client("codeartifact", **self.client_kwargs)

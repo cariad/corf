@@ -1,0 +1,6 @@
+variables:
+  CODEARTIFACT_AUTH_TOKEN:
+    domain:
+      account: "807041577214"
+      name: corf-test
+      region: eu-west-1

@@ -4,8 +4,8 @@ from typing import List
 
 from cauth.configuration import Configuration, Variable
 
-test_data_dir = Path(__file__).parent.parent.parent.joinpath("filesystem-example")
-test_project_dir = test_data_dir.joinpath("project-foo")
+testing_dir = Path(__file__).parent.parent.parent.joinpath("testing")
+test_project_dir = testing_dir.joinpath("sample_filesystem").joinpath("project-foo")
 
 
 def test_configuration_directories() -> None:

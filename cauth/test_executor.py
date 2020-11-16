@@ -9,17 +9,17 @@ from cauth.executor import Executor
 
 
 @mark.parametrize("profile", [(None), ("foo")])
-@patch("cauth.executor.Authorizer")
-def test_make_variables(authorizer_maker: Mock, profile: Optional[str]) -> None:
+@patch("cauth.executor.Authoriser")
+def test_make_variables(authoriser_maker: Mock, profile: Optional[str]) -> None:
     environ["CAUTH_UNITTEST"] = "1"
 
-    authorizer_1 = Mock()
-    authorizer_1.get_token.return_value = "token-1"
+    authoriser_1 = Mock()
+    authoriser_1.get_token.return_value = "token-1"
 
-    authorizer_2 = Mock()
-    authorizer_2.get_token.return_value = "token-2"
+    authoriser_2 = Mock()
+    authoriser_2.get_token.return_value = "token-2"
 
-    authorizer_maker.side_effect = [authorizer_1, authorizer_2]
+    authoriser_maker.side_effect = [authoriser_1, authoriser_2]
 
     configuration = Mock()
     var_1 = Variable(name="VAR_1", values={"domain": {"name": "domain-1"}})
@@ -43,9 +43,9 @@ def test_make_variables(authorizer_maker: Mock, profile: Optional[str]) -> None:
     # Assert that all current environment variables are included.
     assert actuals["CAUTH_UNITTEST"] == "1"
 
-    assert authorizer_maker.call_count == 2
-    authorizer_maker.assert_has_calls([call(domain=var_1.domain, profile=profile)])
-    authorizer_maker.assert_has_calls([call(domain=var_2.domain, profile=profile)])
+    assert authoriser_maker.call_count == 2
+    authoriser_maker.assert_has_calls([call(domain=var_1.domain, profile=profile)])
+    authoriser_maker.assert_has_calls([call(domain=var_2.domain, profile=profile)])
 
 
 @patch("cauth.executor.Executor.make_variables")

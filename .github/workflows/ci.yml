@@ -1,60 +1,198 @@
-name: cauth CI
+name: cauth
 
 on:  # yamllint disable-line rule:truthy
   - push
 
 jobs:
-  ci:
+
+  # Update "requirements.txt" so we can test in multiple Python versions without
+  # needing pipenv everywhere.
+  update_requirements:
+    # Only when pushing to a development branch. Release tags and pulls into the
+    # main branch should have an up-to-date "requirements.txt" already.
+    if: github.event_name == 'push' &&
+        startsWith(github.ref, 'refs/heads') &&
+        github.ref != 'refs/heads/main'
+
+    name: Update requirements.txt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
 
-      - name: Install
+      - name: Freeze requirements
         run: |
           python -m pip install --upgrade pip
           python -m pip install pipenv
-          pipenv sync --dev
+          pipenv lock --dev --requirements > requirements.txt
+
+      - name: Archive requirements.txt
+        uses: actions/upload-artifact@v2
+        with:
+          name: requirements
+          path: requirements.txt
+          retention-days: 1
+
+  lint:
+    name: Lint
+    needs: update_requirements
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+
+      - name: Download requirements.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: requirements
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: ./lint.sh
+
+  unit_test:
+    name: Unit test (Python ${{ matrix.python-version }})
+    needs: update_requirements
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.8"
+          - "3.9"
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download requirements.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: requirements
+
+      - name: Install
+        run: pip install -r requirements.txt
 
       - name: Test
-        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
-        run: pipenv run ./test.sh
+        run: ./test.sh
 
-      - name: Development build
-        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
-        run: |
-          echo "0.0.0" > cauth/VERSION
-          rm -rf dist
-          pipenv run python setup.py bdist_wheel
+  build:
+    name: Build
+    needs: update_requirements
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-      - name: Development smoke
-        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags')
-        run: |
-          pipenv install "dist/$(ls dist)"
-          pipenv run cauth --version | tee version.tmp
-          grep -qF "0.0.0" version.tmp
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
 
-      - name: Versioned build
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        run: |
-          echo "${GITHUB_REF##*/}" > cauth/VERSION
-          rm -rf dist
-          pipenv run python setup.py bdist_wheel
+      - name: Download requirements.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: requirements
 
-      - name: Versioned smoke
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Version
+        run: echo "${GITHUB_REF##*/}" > cauth/VERSION
+
+      - name: Build
+        run: ./build.sh
+
+      - name: Archive distributable
+        uses: actions/upload-artifact@v2
+        with:
+          name: distributable
+          path: dist
+          retention-days: 1
+
+  cli_test:
+    strategy:
+      matrix:
+        python-version:
+          - "3.8"
+          - "3.9"
+    name: CLI test (Python ${{ matrix.python-version }})
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download build distributable
+        uses: actions/download-artifact@v2
+        with:
+          name: distributable
+
+      - name: CLI test
         run: |
-          pipenv uninstall cauth
-          pipenv install "dist/$(ls dist)"
-          pipenv run cauth --version | tee version.tmp
+          # Install cauth.
+          pip install "$(ls *.whl)"
+
+          # Run cauth to get its version, and assert that it's what we expect.
+          cauth --version | tee version.tmp
           grep -qF "${GITHUB_REF##*/}" version.tmp
 
+          # Set up environment variables for cauth to authenticate with.
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+
+          # Go into the magical directory.
+          cd testing/sample_project
+
+          # Create a Pipfile for this Python version.
+          cp Pipfile.template Pipfile
+          echo "python_version = \"${{ matrix.python-version }}\"" >> Pipfile
+
+          # Install pipenv
+          pip install --upgrade pip
+          pip install pipenv
+
+          # Assert that "tupper" is not yet installed, so we can later confirm
+          # that we definitely pulled via an authorisation token.
+          set +e
+          pipenv run python -m tupper
+          returned=$?
+          set -e
+          if [[ "${returned}" != "1" ]]; then
+            echo "Expected tupper execution to fail gracefully: ${returned}"
+            exit 1
+          fi
+
+          # Install our Pipfile (i.e. install "tupper") via "cauth".
+          cauth pipenv install
+
+          # Assert that we just pulled "tupper".
+          pipenv run python -m tupper
+
+  publish:
+    # Publish only when tagging.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    name: Publish
+    needs: cli_test
+    runs-on: ubuntu-latest
+    steps:
       - name: Publish
         uses: pypa/gh-action-pypi-publish@master
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
