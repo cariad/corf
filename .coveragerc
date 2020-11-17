@@ -5,4 +5,4 @@ omit =
 source = corf
 
 [report]
-fail_under = 80
+fail_under = 95
