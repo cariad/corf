@@ -1,5 +1,13 @@
 # corf: A CodeArtifact Orthoriser
 
+----
+
+**`corf` has been succeeded by [wev](https://github.com/cariad/wev) and [wev-awscodeartifact](https://github.com/cariad/wev-awscodeartifact).**
+
+**This repository will no longer be maintained.**
+
+----
+
 `corf` is an AWS CodeArtifact orthorisation… uh I mean _authorisation_ helper for `pipenv` and any other command line tools that read CodeArtifact authorisation tokens as environment variables.
 
 ## Introduction
